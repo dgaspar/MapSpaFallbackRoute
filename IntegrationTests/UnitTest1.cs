@@ -16,32 +16,24 @@ namespace IntegrationTests
         }
 
         [Theory]
-        [InlineData("/")]
-        [InlineData("/Index")]
-        [InlineData("/Spa200")]
-        public async Task Get_EndpointsReturnSuccess(string url)
+        [InlineData("/", "Home Index")]
+        [InlineData("/Index", "Home Index")]
+        [InlineData("/Spa200", "Home Index")]
+        [InlineData("/another/derp", "Another Derp")]
+        [InlineData("/api/index", "Api Get Index")]
+        [InlineData("/not/api/index", "Home Index")]
+        public async Task Get_EndpointsReturnSuccess(string url, string expectedBody)
         {
             var client = _factory.CreateClient();
             var response = await client.GetAsync(url);
             var body = await response.Content.ReadAsStringAsync();
             response.EnsureSuccessStatusCode();
-            Assert.Equal("Home Index", body);
+            Assert.Equal(expectedBody, body);
         }
-
-        [Theory]
-        [InlineData("/api/index")]
-        public async Task Get_EndpointsReturnApiSuccess(string url)
-        {
-            var client = _factory.CreateClient();
-            var response = await client.GetAsync(url);
-            var body = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("Api Get Index", body);
-        }
-
+        
         [Theory]
         [InlineData("/api")]
-        [InlineData("/api/toto")]
+        [InlineData("/api/toto/2")]
         public async Task Get_EndpointsReturnFailure(string url)
         {
             var client = _factory.CreateClient();

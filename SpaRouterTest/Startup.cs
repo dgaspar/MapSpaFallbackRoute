@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SpaRouterTest
@@ -19,12 +22,20 @@ namespace SpaRouterTest
             app.UseMvc(routes =>
             {
                 routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
+       
+                routes.MapSpaFallbackRoute("spa-fallback",
+                    defaults: new { controller = "Home", action = "Index" },
+                    templatePrefix: "{prefix}", 
+                    constraints: new { prefix = new NotApiConstraint() });
             });
+        }
+    }
 
-            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
-            {
-               builder.UseMvc(routes => { routes.MapSpaFallbackRoute("spa-fallback", defaults: new {controller = "Home", action = "Index"}); });
-            });
+    public class NotApiConstraint : IRouteConstraint
+    {
+        public bool Match(HttpContext httpContext, IRouter route, string routeKey, RouteValueDictionary values, RouteDirection routeDirection)
+        {
+            return (string) values[routeKey] != "api";
         }
     }
 
@@ -33,6 +44,14 @@ namespace SpaRouterTest
         public IActionResult Index()
         {
             return new OkObjectResult("Home Index");
+        }
+    }
+
+    public class AnotherController : Controller
+    {
+        public IActionResult Derp()
+        {
+            return new OkObjectResult("Another Derp");
         }
     }
 
